@@ -108,5 +108,7 @@ def al_to_mat(alignment, out, is_prot=False):
     save_metadata(gpos, seq_position, os.path.expanduser(out+".info"))
 
 
+def generate_ed_position(alignment, nuc2sub='C'):
+    """Given an alignment generate a matrix containing 
 if __name__ == '__main__':
     al_to_mat()

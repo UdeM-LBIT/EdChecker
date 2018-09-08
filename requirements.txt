@@ -1,0 +1,4 @@
+click
+biopython
+PyQt5
+ete3
