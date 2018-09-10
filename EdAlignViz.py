@@ -342,10 +342,11 @@ class List90Face(faces.StaticItemFace):
                 text.setFont(font)
                 text.setBrush(QBrush(QColor(self.fgcolor)))
                 # Center text according to rectitem size
-                # txtw = text.boundingRect().width()
+                txtw = text.boundingRect().width() /3.0
                 txth = text.boundingRect().height()
                 text.setRotation(self.rot)
-                text.setX(txth)
+                text.setX(txth*1.5)
+                #text.setY(0)
             seq_width += width
         self.width = seq_width
 
@@ -358,7 +359,7 @@ def format_tree(tree, alignment, al_len_dict, edpos, codontable={}, colors=None,
     # flip alignment dict from gene ==> species ==> seq
     # to species ==> gene ==> seq
     specSeq = ddict(str)
-    edposSeq = {}
+    edposSeq =  ddict(list)
     cur_len = 0
     limits = []
     for gname, specdict in alignment.items():
@@ -366,8 +367,11 @@ def format_tree(tree, alignment, al_len_dict, edpos, codontable={}, colors=None,
             # fill missing with gap
             specSeq[node.name] += specdict.get(node.name,
                                                al_len_dict[gname]*'-')
-            edposSeq[node.name] = [
-                x+cur_len for x in edpos[gene].get(node.name, [])]
+            edposSeq[node.name] += [
+                x+cur_len for x in edpos[gname].get(node.name, [])]
+            # if node.name == 'Y08501':
+            #     print(gname)
+            #     print( edposSeq[node.name])
         cur_len += al_len_dict.get(gname, 0)
         limits.append((gname, cur_len))
 
@@ -417,13 +421,19 @@ def format_tree(tree, alignment, al_len_dict, edpos, codontable={}, colors=None,
     ind = 1
     prev_gend = 0
     for (gname, gend) in limits:
+        ts.aligned_foot.add_face(List90Face(list(range(0, gend - prev_gend, 3)), fsize=13, ftype='Monospace', col_w=RES_COL_WIDTH*3), ind)
         ts.aligned_foot.add_face(faces.RectFace(
-            RES_COL_WIDTH*(gend - prev_gend), 14, '#BBBBBB', '#EEEEEE'), ind)
+            RES_COL_WIDTH*(gend - prev_gend), 13, '#BBBBBB', '#EEEEEE'), ind)
         ts.aligned_foot.add_face(TextFace(gname, fsize=13), ind)
+        ts.aligned_foot.add_face(faces.RectFace(
+            RES_COL_WIDTH*(gend - prev_gend), 5, 'white', 'white'), ind)
         prev_gend += gend
         ind += 1
 
-    t.dist = 0
+    #t.dist = 0
+    ts.margin_left = 5
+    ts.margin_right = 5
+    ts.margin_bottom = 5
     return t, ts
 
 
