@@ -15,14 +15,19 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio.codonalign.codonseq import CodonSeq
 from Bio.Alphabet import IUPAC, generic_nucleotide, generic_protein
+from Bio.Align import AlignInfo, MultipleSeqAlignment
 from Bio.codonalign.codonalphabet import (
     default_codon_alphabet, get_codon_alphabet)
 from Bio.Data import CodonTable
 
+logging.basicConfig(format='DataParser: %(message)s', level=logging.INFO)
 
 EDITING_OK = {'A': ['A'], 'G': ['G'], 'C': [
     'C', 'T'], 'T': ['T'], 'Y': ['T', 'C']}
 
+CtoU = re.compile('C\s*to\s*U', re.IGNORECASE)
+
+MSG = set([])
 
 def mkdir(dirname):
     """Clean a directory"""
@@ -70,8 +75,14 @@ def translate_seq(seq, table=1):
     ctable = CodonTable.unambiguous_dna_by_id[table]
     stop_codons = ctable.stop_codons
     codon_rep = [seq[i:i+3] for i in range(0, len(seq), 3)]
-    prot_seq = [
-        '*' if cod in stop_codons else ctable.forward_table.get(cod, 'X') for cod in codon_rep]
+    prot_seq = []
+    for i,cod in enumerate(codon_rep):
+        if cod in stop_codons and len(codon_rep) -1 <= i:
+            prot_seq.append('*')
+        elif cod == '---':
+            prot_seq.append('-')
+        else:
+            prot_seq.append(ctable.forward_table.get(cod, 'X'))
     return Seq("".join(prot_seq), alphabet=generic_protein)
 
 
@@ -124,16 +135,15 @@ def editing_yielder(cod):
                 yield ednuc0+ednuc1+ednuc2
 
 
-def codon_aligner(gname, protalign, genelist, translist, knowneds={}, codemap={}, force_extend=True):
+def codon_aligner(gname, protalign, genelist, translist, knowneds={}, codemap={}, ignore_syn=False, force_extend=True):
     """DNA alignment codon by codon using protein alignment as template
     Frameshifting is not considered"""
     #aligndict = protalign.to_dict()
     # for seqname, seqrec in aligndict:
-    pro_num = len(protalign)
     codon_align = ddict(str)
     editing_pos = ddict(list)
     for aseq in protalign:
-
+        glen2alen = {}
         gcode = codemap.get(aseq.name, 1)
         ctable = CodonTable.unambiguous_dna_by_id[gcode]
         codseq = ""
@@ -153,30 +163,48 @@ def codon_aligner(gname, protalign, genelist, translist, knowneds={}, codemap={}
                 codseq += '---'
             else:
                 cod = nuc_seq[3*trans_pos:3*trans_pos+3].seq._data
-                if not trans[trans_pos] == val:  # nothing to say here ?
+                if not trans[trans_pos] == val and force_extend:  # nothing to say here ?
                     editerator = editing_yielder(cod)
                     while True:
                         try:
                             codmut = next(editerator)
-                            if codmut and ctable.forward_table[codmut] == val:
+                            if codmut and ctable.forward_table.get(codmut, 'X') == val:
                                 editing_pos[aseq.name].extend(
                                     [(npos+trans_pos*3, len(codseq)+npos) for npos, mnuc in enumerate(codmut) if cod[npos] != mnuc])
                                 break
                         except StopIteration:
                             break
 
-                # here try to add missing editing position catched by genbank scan or db
-                if force_extend:
-                    seen_ed = [x[0] for x in editing_pos[aseq.name] ]
-                    for ced in spec_ed:
-                        if ced not in seen_ed and trans_pos == ced//3 and cod[ced%3] == "C": # accept only C-to-U subs
-                            editing_pos[aseq.name].append((ced, len(codseq)+(ced%3)))
-
+                glen2alen[trans_pos] = len(codseq) 
                 codseq += cod
                 trans_pos += 1
+        # here try to add missing editing position catched by genbank scan or db
+        assert len(codseq) == len(aseq)*3, 'Something is wrong'
+        for ced in spec_ed:
+            ced_cod_pos = ced%3
+            editing_pos[aseq.name].append((ced, glen2alen[ced//3]+ced_cod_pos))
+
+        # new filter on editing_pos: to clean position that do not match with C. Using this and permissive is good
+        not_C_matcher = [x for x in editing_pos[aseq.name] if codseq[x[-1]]!='C']
+        editing_pos[aseq.name] = [x for x in sorted(set(editing_pos[aseq.name])) if x not in not_C_matcher]
+
+        if ignore_syn:
+            rempos = []
+            for i, edpos in enumerate(editing_pos[aseq.name]):
+                _, edpos = edpos
+                cpos = edpos // 3
+                old_codon = str(codseq[cpos*3: cpos*3+3]) 
+                new_codon = [x for x in old_codon]
+                new_codon[edpos%3] = 'T'
+                new_codon = "".join(new_codon)
+                old_aa = ctable.forward_table.get(old_codon, 'X')
+                if old_aa == ctable.forward_table.get(new_codon, 'X') and old_aa != 'X':
+                    rempos.append(i)
+            editing_pos[aseq.name] = [val for i, val in enumerate(editing_pos[aseq.name]) if i not in rempos]
+
+
         codon_align[aseq.name] = SeqRecord(Seq(
             codseq, alphabet=default_codon_alphabet), id=nuc_seq.id, name=nuc_seq.name, description=nuc_seq.description)
-        assert len(codseq) == len(aseq)*3, 'Something is wrong'
         # if not str(aseq.seq.ungap('-'))==str(trans.seq):
         #     print(editing_pos[aseq.name])
         #     print(aseq.name)
@@ -184,13 +212,88 @@ def codon_aligner(gname, protalign, genelist, translist, knowneds={}, codemap={}
         #     assert len(editing_pos[aseq.name]) >0, "At least one position should be edited"
 
     # codonalign.CodonAlignment(codon_align.values(), alphabet=default_codon_alphabet)
-    return editing_pos, codon_align.values()
+    return editing_pos, codon_align
+
+def get_correct_seq(codon_align, edited_pos, gcode={}):
+    """Compute correct sequence from editing position"""
+    new_seqs = {}
+    for seqid, seqrec in codon_align.items():
+        edpos = edited_pos[seqid]
+        seqx = [x for x in seqrec.seq._data]
+        for pos in edpos:
+            seqx[pos[-1]] = 'T'
+
+        new_seqs[seqid] = SeqRecord(translate_seq("".join(seqx), gcode.get(seqid, 1)), id=seqrec.id, name=seqrec.name, description=seqrec.description)
+    return new_seqs.values()
 
 
-def save_data(gname, align, editpos, outdir):
+def at_least_one_ed(edited_pos, pos):
+    for s_id, ed_pos_list in edited_pos.items():
+        for _, ed_pos in ed_pos_list:
+            if ed_pos//3 == pos:
+                return ed_pos%3
+    return None
+
+
+def complete_from_consensus(true_seq_aln, cod_align, edited_pos, gcode={}, only_ed_G=False):
+    true_seq_aln = MultipleSeqAlignment(list(true_seq_aln))
+    summary_align = AlignInfo.SummaryInfo(true_seq_aln)
+    consensus = summary_align.dumb_consensus(threshold=0.5)
+    for pos in range(true_seq_aln.get_alignment_length()):
+        cons_aa = consensus[pos]
+        known_ed_col = at_least_one_ed(edited_pos, pos)
+        if known_ed_col is not None:
+            for seqrec in true_seq_aln:
+                ctable = CodonTable.unambiguous_dna_by_id[gcode.get(seqrec.name, 1)]
+                seq_aa = seqrec[pos]
+                ed_allowed = (only_ed_G and len(edited_pos.get(seqrec.name, [])) > 0) or not only_ed_G
+                nuc_pos = len(str(seqrec[:pos+1].seq).replace("-", ""))
+                in_pos = [x[-1] for x in edited_pos[seqrec.name] if x[-1]//3==pos]
+                if in_pos:
+                    wg_pos = in_pos[0]
+                    # Here we attempt to slightly correct a wrong position
+                    wg_cod = [x for x in str(cod_align[seqrec.name][pos*3: pos*3+3].seq)]
+                    if not wg_cod[wg_pos%3] == 'C':
+                        edited_pos[seqrec.name] = [x for x in edited_pos[seqrec.name] if x != wg_pos]
+                    else:             
+                        wg_cod[wg_pos%3] = 'T'
+                        wg_aa = ctable.forward_table.get("".join(wg_cod), 'X')
+                        if wg_aa!='X' and wg_aa!=cons_aa:
+                            edited_pos[seqrec.name] = [x for x in edited_pos[seqrec.name] if x != wg_pos]
+
+                    #print(seqrec.description, pos, pos*3, ed_allowed, known_ed_col, cons_aa, seq_aa, str(cod_align[seqrec.name][pos*3: pos*3+3].seq))
+                
+                if ed_allowed and not in_pos:
+                    codon = [x for x in str(cod_align[seqrec.name][pos*3: pos*3+3].seq)]
+                    cmut = [x for x in codon]
+                    cmut[known_ed_col] = 'T'
+                    if codon[known_ed_col] == 'C' and ctable.forward_table.get("".join(cmut), 'X')==cons_aa and cons_aa!='X':
+                        edited_pos[seqrec.name].append((nuc_pos*3+known_ed_col , pos*3 + known_ed_col))
+                    else:
+                        editerator = editing_yielder(codon)
+                        while True:
+                            try:
+                                codmut = next(editerator)
+                                if codmut and ctable.forward_table.get(codmut, 'X') == cons_aa:
+                                    edited_pos[seqrec.name].extend(
+                                        [(npos+nuc_pos*3, pos*3+npos) for npos, mnuc in enumerate(codmut) if codon[npos] != mnuc])
+                                    break
+                            except StopIteration:
+                                break
+
+
+    for k, v in edited_pos.items():
+        edited_pos[k] = list(sorted(set(v)))
+    return edited_pos
+
+
+def save_data(gname, align, editpos, outdir, trueseq=None):
     """Save data"""
     outdir = mkdir(os.path.expanduser(outdir))
-    with open(os.path.join(outdir, gname+".aln"), 'w') as COD:
+    if trueseq:
+        with open(os.path.join(outdir, gname+".aa.aln"), 'w') as AA:
+            SeqIO.write(trueseq, AA, 'fasta')
+    with open(os.path.join(outdir, gname+".cod.aln"), 'w') as COD:
         SeqIO.write(align, COD, 'fasta')
     with open(os.path.join(outdir, gname+'.truth'), 'w') as TVAL:
         for spec, pos in editpos.items():
@@ -219,13 +322,20 @@ def collect_edpos_from_seqrec(seqrec):
     """
     misc_features = [x for x in seqrec.features if x.type ==
                      "misc_feature" and "editing" in "".join(x.qualifiers.get("note", [])).lower()]
+    R_edit_features = [x for x in seqrec.features if x.type ==
+                     "RNA_editing" and "substitution" in "".join(x.qualifiers.get("type", [])).lower()]
     edpos = []
     for mf in misc_features:
         affected_gene = mf.qualifiers.get("gene", [None])[0]
         edtype = mf.qualifiers.get("note", [""])[0].replace(
             "RNA editing", "").strip()
-        if "C to U" in edtype:
-            edpos.append((affected_gene, mf.location))
+        if CtoU.match(edtype):
+            edpos.append((affected_gene, mf.location, False))
+    if R_edit_features or True:
+        for mf in R_edit_features:
+            affected_gene =  mf.qualifiers.get("gene", [None])[0]
+            if mf.qualifiers.get('replace', [""])[0].strip().upper() == 'U':
+                edpos.append((affected_gene, mf.location, True))
     return edpos
 
 
@@ -270,31 +380,45 @@ def collect_edpos_from_db(genome, gene, conn=None, dbfile=None, complete=False):
 
 
 
-def get_relative_position(entry, ref_feat, sgene_reg, match_name=False):
+def get_relative_position(entry, ref_feat, sgene_reg, match_name=False, spec=None):
     """Return a gene specific position, from a genome location object.
     The offset of the relative position is 0"""
-    gname, edloc =  entry
+    gname, edloc, RNA_label =  entry
+
     if (not match_name or not gname or sgene_reg.lower()==gname.lower()):
         dist = 0
-        for reflocpart in ref_feat.location.parts:
+        reflocs = ref_feat.location.parts
+        strands = list(set([x.strand for x in reflocs]))
+        #assert len(strands)==1, "Trans splicing in {} ({}): {}".format(sgene_reg, spec, strands)
+        if not ref_feat.location.strand:
+            MSG.add("==> Trans splicing in {} ({}). Consider removing gene !".format(sgene_reg, spec))        
+
+        strands = ref_feat.location.strand or strands[0]
+        if strands < 0 :
+            reflocs = list(reversed(reflocs))
+        for reflocpart in reflocs:
             start =  reflocpart.start
             end = reflocpart.end
             dist += abs(end - start)
             if not (edloc.start < start or edloc.end > end):
-                return dist  - (end - edloc.end) # index a zero
+                return dist  - (end - edloc.end), RNA_label
     return None
 
 
-@click.command(help="Build dataset of true positive for RNA editing")
+@click.command(help="Build dataset of true positive for C-to-U RNA editing")
 @click.argument('records', nargs=-1, type=click.Path(exists=True))
 @click.option('--genelist', type=click.Path(exists=True), help='List of genes to keep in a file')
 @click.option('--gcode', default=1, type=click.INT, help='Reference genetic code to use for all genomes.')
 @click.option('--revgenes',  help='Map containing gene synonymes.')
 @click.option('--nmatch',  is_flag=True, help='Whether RNA editing misc_feature should match the given gene name or not.')
 @click.option('--dbcheck',  help='Check and extend list of edited positions with database reference (union not intersection)')
+@click.option('--save_prot', is_flag=True, help='Save the true protein sequences after editing is applied')
 @click.option('-v', '--verbose',  is_flag=True, help='Enable verbose')
+@click.option('-nd', '--no_dup',  is_flag=True, help='Do not allow gene duplicates (e.g: cox1_2, cox1_1)')
+@click.option('--ignore_syn',  is_flag=True, help='Ignore positions where editing result in synonymous codons')
+@click.option('--permissive',  default=0, type=click.IntRange(0, 2, clamp=True), help='Try to use alignment consensus to guess missing RNA editing position. This is only performed at positions where at least one RNA editing is already reported. If set to 1, only allow RNA editing in genome that already have it at other position of the same gene !')
 @click.option('-wd', '--outdir',  default="./dataset/", help='Output directory where to save the dataset and all results')
-def cli(records, genelist=None, gcode=1, revgenes=None, nmatch=False, dbcheck=None, verbose=False, outdir=None):
+def cli(records, genelist=None, gcode=1, revgenes=None, nmatch=False, dbcheck=None, save_prot=False, verbose=False, no_dup=False, ignore_syn=False, permissive=0, outdir=None):
     """Extract genome content based on a list of species """
     spec_code_map = {}
     gene2spec = ddict(dict)
@@ -334,8 +458,10 @@ def cli(records, genelist=None, gcode=1, revgenes=None, nmatch=False, dbcheck=No
                     sgene = sgene.split('-')[0]
 
                 sgene = revgenes.get(sgene, sgene).lower()
+                if no_dup:
+                    sgene = sgene.split('_')[0]
                 if genematch(sgene, genelist):
-                    matching_pos = [get_relative_position(ed_entry, f, sgene, match_name=nmatch) for ed_entry in putative_ed_pos]
+                    matching_pos = [get_relative_position(ed_entry, f, sgene, match_name=nmatch, spec=spec) for ed_entry in putative_ed_pos]
                     # excision to remove none values
                     #print(matching_pos)
                     seq = None
@@ -354,21 +480,21 @@ def cli(records, genelist=None, gcode=1, revgenes=None, nmatch=False, dbcheck=No
                                 n_A = (len(pos_range.split('..')) % 2) + 1
                                 seq = seq + Seq('A' * n_A, seq.alphabet)
                                 assert len(seq) % 3 == 0
-                                logging.info("FIXED : partial termination for the following gene: %s - %s | %d %d A added" %
+                                MSG.add("FIXED : partial termination for the following gene: %s - %s | %d %d A added" %
                                              (sgene, spec, len(seq), n_A))
 
                         except:
-                            logging.warn("Possible frame-shifting in the following gene : %s - %s | %s ==> %d (%d)" %
+                            MSG.add("Possible frame-shifting in the following gene : %s - %s | %s ==> %d (%d)" %
                                          (sgene, spec, sname, len(seq), len(seq) % 3))
                     if f.strand and f.strand<0: # fix reverse sequence positioning for edited site
-                        matching_pos = sorted([len(seq)-x  for x in matching_pos if x is not None])
+                        matching_pos = sorted([abs(len(seq)-x[0])  for x in matching_pos if x is not None])
                     else:
-                        matching_pos = sorted([x-1 for x in matching_pos if x])
+                        matching_pos = sorted([x[0]-1 for x in matching_pos if x])
 
                     matching_pos = list(matching_pos)
-                                          
+
                     if 'N' in seq:
-                        logging.warn("Sequence with undefined nucleotide : %s - %s | %d" %
+                        MSG.add("Sequence with undefined nucleotide : %s - %s | %d" %
                                      (sgene, spec, len(seq)))
                     try:
                         table = int(f.qualifiers['transl_table'][0])
@@ -386,8 +512,7 @@ def cli(records, genelist=None, gcode=1, revgenes=None, nmatch=False, dbcheck=No
                     if dbconn:
                         rows = collect_edpos_from_db(description, sgene, conn=dbconn, complete=True)
                         potential_extension = set([])
-                        if verbose:
-                            print("Match for %s: %s"%(description, str(len(rows)>0)))
+                        MSG.add("Match for %s: %s"%(description, str(len(rows)>0)))
                         #SELECT accession, organism, location, gene, gstatus, evidence, type, 
                         #nuc1, nuc2, pos, size, codchange, gcode, dnaseq, rnaseq, protseq
                         #FROM editing"""
@@ -433,13 +558,23 @@ def cli(records, genelist=None, gcode=1, revgenes=None, nmatch=False, dbcheck=No
     #triple_format(gene2spec, prot2spec, trans2spec, glist=['cox1'])
     msa_data = {}
     for gname, slist in prot2spec.items():
+        true_seq_aln = None
         if len(slist) > 1:
             msa_data[gname] = align(gname, slist.values(), 'mafft', outdir=os.path.join(outdir, "prot_align/"))
             edited_pos, cod_align = codon_aligner(
-                gname, msa_data[gname], gene2spec[gname], trans2spec[gname], knownedited[gname], spec_code_map)
-            save_data(gname, cod_align, edited_pos, os.path.join(outdir, "editing_map"))
+                gname, msa_data[gname], gene2spec[gname], trans2spec[gname], knownedited[gname], spec_code_map, ignore_syn=ignore_syn)
+            true_seq_aln = get_correct_seq(cod_align, edited_pos, gcode=spec_code_map)
+            if permissive > 0:
+                edited_pos = complete_from_consensus(true_seq_aln, cod_align, edited_pos, gcode=spec_code_map, only_ed_G=(permissive==1))
+                true_seq_aln = get_correct_seq(cod_align, edited_pos, gcode=spec_code_map)
+            if not save_prot:
+                true_seq_aln = None
+            save_data(gname, cod_align.values(), edited_pos, os.path.join(outdir, "editing_map"), trueseq=true_seq_aln)
     if dbconn:
         dbconn.close()
+    if verbose and MSG:
+        for msg in MSG:
+            logging.info(msg)
     return gene2spec, prot2spec, trans2spec, spec_code_map
 
 

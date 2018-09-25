@@ -1,45 +1,119 @@
->NC_012116 Carica_papaya
-------------------------------------------------------------
--MNILRPLSPHLPIYKPQLTSTFPISHRISGAFLATIVLFFYLFCLKIGFICFTYENFYQ
-FFF----YSSKLILISAEIAALALSYHLYNGVRHLLTDFSGFLF----------------
----------LRIGRKRLK----
 >NC_004118 Chaetosphaeridium_globosum
 ------------------------------------------------------------
--MKINRPLSPHLTVYKPQLTSTLSIFHRISGAFLAFFVLSFALS-MPICQINLSFYSFYK
-IWFYLCHDKLWVFLTVLNLAFFSVCYHMSNGIRHLLWDYGLFLDLSKVY--FSGVFMLIV
-AVSLVILNLIRII---------
+-MKINRPLSPHLTVYKPQLTSTLSIFHRISGAFLAFFVLSF--ALSMPICQINLSFYSFY
+KIWFYLCHDK--LWVFLTVLNLAFF-SVC-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------IRHLLWD---------YG-L-----FLDLSKVYFSG-VFMLIVAV
+SLVILNLIRII------------------
 >NC_005255 Chara_vulgaris
 ------------------------------------------------------------
--MKINRPLSPHITIYKPQLTSTFSIFHRICGAFLATTVLFSILF-FKICELSLTFYHFYL
-FVFYFICYFHWLIFSLFNLAFLALCYHMSNGIRHLLWDLGHSLDLSKVY--TSGTIMFFF
-AACLVTLNILRFSLS-------
->NC_009630 Chlorokybus_atmophyticus
------------------------------------------------------------M
-FMTLHRPLSPHLTIYKPQLTSMLSIFHRITGAFMATSVLLTIFL-LKICNFHLTSYNFYI
-FAFILFSYYKWLILTVLFLLIISLHYHMSNGLRHLTWDLGLSLDIAKVY--SSGRFVLVG
-GTILLIINLLRFLYS-------
+-MKINRPLSPHITIYKPQLTSTFSIFHRICGAFLATTVLFS--ILFFKICELSLTFYHFY
+LFVFYFICYF--HWLIFSLFNLAFL-ALC-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------IRHLLWD---------LG-H-----SLDLSKVYTSG-TIMFFFAA
+CLVTLNILRFSLS----------------
+>NC_014043 Citrullus_lanatus
+------------------------------------------------------------
+-MNILRPLSPHLPIYKPQLTSTFPISHRISGAFLATLVLFF-YLLCLKMGLICFTYSNFY
+RFFFY------SSKLILISAEITAL-ALS-------------------------------
+------YH-------LYNG-----------------------------------------
+---------------VRHLLTD---------FS---------------------------
+-----------------------------
+>NC_014050 Cucurbita_pepo
+------------------------------------------------------------
+-MNILRPLSPHLPIYKPQLTSTFPISHRISGAFLATLVLFF-YLLCLKMGLICFTHESFY
+RFLFY------SSKLILISVEITAL-ALS-------------------------------
+------YH-------LYKG-----------------------------------------
+---------------VRHLLTD---------FVSF-------------RKR---------
+------ERKTN------------------
+>KC821969 Liriodendron_tulipifera
+M-----------------------------------------------------------
+-KKIHRPLPPHLTLYMSQLTSTFPISHRISGAFLATMVLFS-PFLCPKMGLISLTYENFY
+QSSPN------SSKFIPSSVGLTAF-ALA-------------------------------
+------YH-------LFHG-----------------------------------------
+---------------VRHLLPD---------FGHL-----LLDV----RKK---------
+------MLDF-------------------
 >NC_001660 Marchantia_paleacea
 ------------------------------------------------------------
--MKINRPLSPHLTIYKPQLTSTFSIFHRISGAFLATMVLFSILF-FKIGDLSLTFYHFYQ
-YFFFLTFYLNWFIISLVNFTLLALCYHMSNGVRHLLWDLGFFLELSKVY--TSGIIMLFC
-AAFLALLNIIRQHWSNGQIPY-
->NC_037508 Marchantia_polymorpha_subsp_ruderalis
+-MKINRPLSPHLTIYKPQLTSTFSIFHRISGAFLATMVLFS--ILFFKIGDLSLTFYHFY
+QYFFFLTFYL--NWFIISLVNFTLL-ALC-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------VRHLLWD---------LG-F-----FLELSKVYTSG-IIMLFCAA
+FLALLNIIRQHWSN-----GQIPY-----
+>NC_016742 Millettia_pinnata
 ------------------------------------------------------------
--MKINRPLSPHLTIYKPQLTSTFSIFHRISGAFLATMVLFSILF-FKIGDLSLTFYHFYQ
-YFFFLTFYLNWFIISLVNFTLLALCYHMSNGVRHLLWDLGFFLELSKVY--TSGIIMLFC
-AAFLALLNIIRQHWSNGQIPY-
->NC_008240 Mesostigma_viride
------------------------------------------------------------M
-KKIIVRPLSPHVSVYQPQWNSMFSLFHRISGSVLVISLFTFFLF-SIIYSFHAT-RSYEL
-FSFFLTLEDSKLFSFVELTILFALSYHIINGIHHIMIENDKYSEIHLKWPKTTGLILLFV
-VV------LLFFYIS----FYV
+-MNIIRSL----------LTRLPRMFHLFYSFLIIIPLLGVFYLLCLKLGFLDFFQSLLY
+KIGFSLG----SRVLSFALLKLGLAGGLALAIGCLLRLLFSSEEIALFMFPPGADAGSEA
+SVNQEPHHRPGPSTPIHNGSASTSSTVEQPAPPAKPYIALLQLEGERKRLIDEILAFVED
+KLEDPGQPRGPINEQALRLLWNELEINESTSLGELQEWKDSLRQNSQHYKS---------
+------IFGFYKPGGVFYEGNTPYGYRTY
+>BA000042 Nicotiana_tabacum
+------------------------------------------------------------
+-MNILRPLSPHLPIYKPQLTSTFSISHRISGAFLATIVFFF-YLLCLKIGLICFTYENFY
+QFFFY------SSKLILISVEITAL-ALS-------------------------------
+------YH-------LYNG-----------------------------------------
+---------------VRHLLTD---------FSGF-----FF--LRIGRKR---------
+------LK---------------------
 >NC_007945 Physcomitrella_patens
 ------------------------------------------------------------
--MKINRPLSPHLTIYKPQLTSTFSIFHRISGAFLASMVFFSILF-LKIGDLNLTSYYLYR
-YAFSFTFYFHWLISSVVNFSLLALCYHMSNGIRHLLWDLGFFLELSKVY--TSGIIMLFC
-AAFLAVSNIIRFYFS-------
+-MKINRPLSPHLTIYKPQLTSTFSIFHRISGAFLASMVFFS--ILFLKIGDLNLTSYYLY
+RYAFSFTFYF--HWLISSVVNFSLL-ALC-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------IRHLLWD---------LG-F-----FLELSKVYTSG-IIMLFCAA
+FLAVSNIIRFYFS----------------
 >NC_012119 Vitis_vinifera
 MKLKVTDNQQLDNKEIIKVFNNIKISFNETIKNEEKKEFLITLSDFVCNDLIRRGNLINN
-RKNILRPLSPHLPIYKPQLTSTFPIYHRISGAFLATLVLFFYLLCLKIGLICFTYENFYQ
-FFF----FSSKLILISVGITALALSYHLYNGVRHLLTDFSGFLFQ---------------
---------CFRIGRS-------
+RKNILRPLSPHLPIYKPQLTSTFPIYHRISGAFLATLVLFF-YLLCLKIGLICFTYENFY
+QFFFF------SSKLILISVGITAL-ALS-------------------------------
+------YH-------LYNG-----------------------------------------
+---------------VRHLLTD---------FSGF-----LFQCFRIGRS----------
+-----------------------------
+>NC_009630 Chlorokybus_atmophyticus
+M-----------------------------------------------------------
+FMTLHRPLSPHLTIYKPQLTSMLSIFHRITGAFMATSVLLT--IFLLKICNFHLTSYNFY
+IFAFILFSYY--KWLILTVLFLLII-SLH-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------LRHLTWD---------LG-L-----SLDIAKVYSSG-RFVLVGGT
+ILLIINLLRFLYS----------------
+>NC_022860 Closterium_baillyanum
+------------------------------------------------------------
+-MKINRPLSPHLSIYKPQLTSTLSIFHRISGGFLASILLFT--ILCLKICDLGLSYYQIY
+WCLFYLFSYF--DWFIFSLANLALL-ALC-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------IRHLLWD---------FG-F-----FLDLSKVYISGALVVILSAI
+LLVVLNILRLYFV----------------
+>NC_022861 Entransia_fimbriata
+------------------------------------------------------------
+-MKTNRPLSPHLTIYRPQFTSVLSIFHRISGFLLASWVTGL--IIFFVFLKLHLSVFLVY
+WTLFQMAGIPQTGSLLVALLFCLIL-ALS-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------IRHLFWD---------LG-F-----YLDLEKVYRTG-IIVCVLAI
+LLAFSFLYRIYF-----------------
+>KP165386 Klebsormidium_flaccidum
+------------------------------------------------------------
+-MRINRPLSPHLTVYRPQLTSVLSIFHRISGVVLATTAIGG--IFALKLSATHFNTYPVY
+WFAFLLCSKL--DWLVFAALILAFF-ALC-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------IRHLLWD---------MG-L-----FLDLNKIYTSA-FIMLACSA
+SLAAINFLRFYAS----------------
+>NC_037508 Marchantia_polymorpha_subsp_ruderalis
+------------------------------------------------------------
+-MKINRPLSPHLTIYKPQLTSTFSIFHRISGAFLATMVLFS--ILFFKIGDLSLTFYHFY
+QYFFFLTFYL--NWFIISLVNFTLL-ALC-------------------------------
+------YH-------MSNG-----------------------------------------
+---------------VRHLLWD---------LG-F-----FLELSKVYTSG-IIMLFCAA
+FLALLNIIRQHWSN-----GQIPY-----
+>NC_008240 Mesostigma_viride
+MK----------------------------------------------------------
+-KIIVRPLSPHVSVYQPQWNSMFSLFHRISGSVLVISLFTF-FLFSIIYSFHATRSYELF
+SFFLTL-----EDSKLFSFVELTILFALS-------------------------------
+------YH-------IING-----------------------------------------
+---------------IHHIMIEN------DKYSEI-----HLKWPK--TTG-LILLFVVV
+LLFF--YISFYV-----------------
+>NC_022863 Roya_obtusa
+------------------------------------------------------------
+-MKLNRPLSPHLTIYKPQITSTLSIFHRISGAFLAFTLIGI--VFSLKIIDLTLSYYLIY
+SYIFFFINSFFSLWILIIFFNFTLL-ALS-------------------------------
+------YH-------LSNG-----------------------------------------
+---------------IRHLFWD---------FG-F-----FLDLSKVKSSG--IIMICFT
+IFFVFFFNRF-------------------

@@ -14,6 +14,7 @@ from ete3.treeview.main import COLOR_SCHEMES
 from collections import OrderedDict, defaultdict as ddict
 import os
 import sys
+import re
 from Bio import AlignIO, SeqIO
 from Bio.Data import CodonTable
 import logging
@@ -273,7 +274,7 @@ class SequenceFace(faces.StaticItemFace):
 
     def get_html(self, pos, fgcolor):
         letter = self.seq[pos]
-        if not self.mark.get(pos):
+        if self.mark.get(pos) is None:
             return '<span style="color:%s;">%s</span>'%(fgcolor, letter)
         else:
             html = ""
@@ -503,7 +504,16 @@ if __name__ == '__main__':
     else:
         out = out[0] + "."+out[-1].lower()
 
-    tree = Tree(args.tree)
+    s = args.tree
+    try:   
+        tree = Tree(s)
+    except Exception as e:
+        import unicodedata
+        with open(args.tree) as T:
+            s = T.read().strip().replace("'", '')
+            s = re.sub(r'[^\x00-\x7F]+',' ', s)
+    tree = Tree(s)
+
     al_per_gene = {}
     eddict = {}
     al_len = {}
@@ -513,7 +523,7 @@ if __name__ == '__main__':
     for al in args.align:
         if os.path.isfile(al):
             try:
-                gname, ext = os.path.splitext(al)
+                gname, ext = al.split('.', 1) 
                 gene = os.path.basename(gname)
                 cur_msa = AlignIO.read(al, "fasta")
                 # add alignment length
