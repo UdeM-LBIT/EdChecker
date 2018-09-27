@@ -438,7 +438,7 @@ def format_tree(tree, alignment, al_len_dict, edpos, codontable={}, colors=None,
     return t, ts
 
 
-def display_tree(tree, aligndict, al_len_dict, eddict, outfile, gcode, colormap, dpi=1200, width=500):
+def display_tree(tree, aligndict, al_len_dict, eddict, outfile, gcode, colormap, dpi=1200, width=500, scale=100):
 
     # check if leave name and seq name match
     gcode['---'] = '-'
@@ -446,6 +446,7 @@ def display_tree(tree, aligndict, al_len_dict, eddict, outfile, gcode, colormap,
     t, ts = format_tree(tree, aligndict, al_len_dict, eddict, codontable=gcode,
                         codon_col=colormap, colors=colors, text="C-to-U RNA editing")
     #ts.title.add_face(TextFace("Alignment display ", fsize=14), column=0)
+    ts.scale = scale
     t.render(outfile, dpi=dpi, tree_style=ts, w=width)
 
 def get_ed_pos(edpath):
@@ -479,6 +480,7 @@ if __name__ == '__main__':
                         default="svg", help="Image output format")
     parser.add_argument('--dpi',  type=int, default=300, help="DPI for image quality")
     parser.add_argument('-w','--width',  type=float, default=10000, help="Width of the image")
+    parser.add_argument('--scale',  type=int, default=100, help="Scale of the phylogenetic tree (zoom on X axis to increase branch length representation.)")
 
     parser.add_argument('--gcode', default=1, type=int,
                         help="Genetic code table to use. Only accept Standard table (NCBI) as for now")
@@ -557,4 +559,4 @@ if __name__ == '__main__':
 
     for s in set.symmetric_difference(set(tree.get_leaf_names()), spec_and_descr.keys()):
         logging.warning(spec_and_descr[s])
-    display_tree(tree, al_per_gene, al_len, eddict, out, gcode, colormap, dpi=args.dpi, width=args.width)
+    display_tree(tree, al_per_gene, al_len, eddict, out, gcode, colormap, dpi=args.dpi, width=args.width, scale=args.scale)
