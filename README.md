@@ -48,5 +48,10 @@ C2USimul simulates a dataset (codon alignment) with RNAediting. Codon sequences 
 
 An example of command to run C2USimul to return 2 'simulated genes' with RNA editing at ~15% or C positions. Note that for each position of the protein alignment a random clade is selected and subjected to editing. The lower the depth of their corresponding LCA, the higher is the chance of selection. This is to prevent editing at orphan genomes, since it is not what we observe in real dataset (because editing site are often conserved).
 ```
-python C2USimul.py  --gtree misc/tree_simul_example.nw  --gsize 2 --glen_range 100 400 -wd test --delrate 0.3 --protlike --from_al dataset/editing_map/atp1 --eprob 0.15
+python C2USimul.py  --gtree misc/tree_simul_example.nw  --gsize 2 --glen_range 100 400 -wd misc/simul_test --delrate 0.2 --protlike  --no_syn --sub_rate 0.5  --dnds 0.6 1 --tau 1.2 --min_cons 0.5
+
 ```
+
+You should probably set a minimum conservation threshold for RNA editing positions for optimization-like algorithms and also use a substitution rate no greater than 1. 
+
+Please note that although it is not checked, branch lengths are required for best result, otherwise a fixed branch length of 1 will be used, which is pretty bad from the few results I have.
