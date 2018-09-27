@@ -41,3 +41,12 @@ This issue is caused by the fact that several `misc_feature` (used for additiona
 
 You can run the script (```DataParser.py```) if you want to build a new dataset (ex, by adding new genomes). All scripts come with a help option.
 run ```python SCRIPT_NAME --help```
+
+## C2USimul
+
+C2USimul simulates a dataset (codon alignment) with RNAediting. Codon sequences are simulated using pyvolve and mutation rates provided or drawn from an exisiting alignment. 
+
+An example of command to run C2USimul to return 2 'simulated genes' with RNA editing at ~15% or C positions. Note that for each position of the protein alignment a random clade is selected and subjected to editing. The lower the depth of their corresponding LCA, the higher is the chance of selection. This is to prevent editing at orphan genomes, since it is not what we observe in real dataset (because editing site are often conserved).
+```
+python C2USimul.py  --gtree misc/tree_simul_example.nw  --gsize 2 --glen_range 100 400 -wd test --delrate 0.3 --protlike --from_al dataset/editing_map/atp1 --eprob 0.15
+```
